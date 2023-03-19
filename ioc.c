@@ -19,7 +19,7 @@ typedef struct QCB{
     uint32_t capacity;
     uint32_t elements_in;
     uint32_t size;//item_size
-    uint32_t* buffer;
+    char* buffer;
 }QCB;
 
 typedef struct ref_cc{
@@ -39,17 +39,18 @@ char QCB_1_buffer[10];
 ref_cc QCB_2_buffer[10];
 uint32_t* QCB_3_buffer[10];
 QCB qcb[4] = {
-        {0,0,10,0,4,(uint32_t*)QCB_0_buffer},
-        {0,0,10,0,1,(uint32_t*)QCB_1_buffer},
-        {0,0,10,0,sizeof(struct ref_cc),(uint32_t*)QCB_2_buffer},
-        {0,0,10,0,sizeof(uint32_t*),(uint32_t*)QCB_3_buffer}
+        {0,0,10,0,4,(char*)QCB_0_buffer},
+        {0,0,10,0,1,(char*)QCB_1_buffer},//bufer 更改 type
+        {0,0,10,0,sizeof(struct ref_cc),(char*)QCB_2_buffer},
+        {0,0,10,0,sizeof(uint32_t*),(char*)QCB_3_buffer}
     };
 
 //data copy
 void* memcpy_j(void* dest,const void *src, uint32_t n){
-    printf("size n = %d\n",n);
-    printf("dest address = %p\n",dest);
-    printf("src address = %p\n",src);
+    // printf("enter memcpy");
+    // printf("size n = %d\n",n);
+    // printf("dest address = %p\n",dest);
+    // printf("src address = %p\n",src);
     char *d = dest;
     const char *s = src;
     for(size_t i = 0; i < n; i++){
@@ -68,8 +69,8 @@ void* memcpy_j(void* dest,const void *src, uint32_t n){
 // size = 0;
 // buffer = QCB_id_buffer
 void enqueue(int id, void* data){
-    printf("enqueue data address = %p\n",data);
-    printf("id = %d\n",id);
+    // printf("enqueue data address = %p\n",data);
+    // printf("id = %d\n",id);
     QCB* qp = &qcb[id];
     if(qp->elements_in == qp->capacity){
         printf("buffer is full\n");
@@ -77,21 +78,22 @@ void enqueue(int id, void* data){
     }
 
     uint32_t* src = data;
-    uint32_t* des = &(qp->buffer[qp->head]);
+    char* des = &(qp->buffer[0]) + (qp->head*qp->size);
+    printf("size * head %p\n",des);
     uint32_t size = qp->size;
     memcpy_j(des,src,size);
     qp->elements_in++;
     qp->head++;
 }
 void dequeue(int id,void *data){
-    printf("dequeue data address = %p\n",data);
+    // printf("dequeue data address = %p\n",data);
     QCB* qp = &qcb[id];
     if(qp->elements_in == 0){
         printf("empty\n");
         return;
     }
     uint32_t* des = data;
-    uint32_t* src = &(qp->buffer[qp->tail]);
+    char* src = &(qp->buffer[0]) + (qp->tail*qp->size);
     uint32_t size = qp->size;
     memcpy_j(des,src,size);
     qp->elements_in--;
@@ -99,7 +101,7 @@ void dequeue(int id,void *data){
 }
 
 void IocSend_aa(uint32_t data){
-    printf("data address = %p\n",&data);
+    // printf("data address = %p\n",&data);
     enqueue(aa,&data);        
 }
 void IocReceive_aa(uint32_t* data){
@@ -136,15 +138,15 @@ void IocReceive_dd(int** data){
 
 int main(void){
     /* send integer begin*/
-    // IocSend_aa(10);
-    // IocSend_aa(111);
-    // int data = 0;
-    // IocReceive_aa(&data);
-    // IocReceive_aa(&data);
-    // IocReceive_aa(&data);
-    // printf("receive data is %d\n",data);    printf("%p %d %d\n",QCB_0_buffer,QCB_0_buffer[0],QCB_0_buffer[1]);  
+    IocSend_aa(10);
+    IocSend_aa(111);
+    int data = 0;
+    IocReceive_aa(&data);
+    IocReceive_aa(&data);
+    IocReceive_aa(&data);
+    printf("receive data is %d\n",data);    printf("%p %d %d\n",QCB_0_buffer,QCB_0_buffer[0],QCB_0_buffer[1]);  
     /* send integer end*/
-
+ 
     /* send char begin*/
     // IocSend_bb('b');
     // char out;
@@ -153,25 +155,25 @@ int main(void){
     // ref_cc q = {87,87,"k"};
     /* send integer end*/
 
-    /*send group start*/
-    int a;
-    short b;
-    char c;
-    IocSend_cc(87,87,'k');
-    IocReceive_cc(&a,&b,&c);
-    printf("%d %hd %c",a,b,c);
+    // /*send group start*/
+    // int a;
+    // short b;
+    // char c;
+    // IocSend_cc(87,87,'k');
+    // IocReceive_cc(&a,&b,&c);
+    // printf("%d %hd %c",a,b,c);
  
-    /*send group end*/
+    // /*send group end*/
 
-    /*send reference begin*/
-    int kk = 5;
-    int lll = 9;
-    int* ll = &lll;
-    int** l = &ll;
-    IocSend_dd(&kk);
-    IocReceive_dd(l);
-    printf("lll = %d\n",lll);
-    printf("lll = %d\n",**l);
+    // /*send reference begin*/
+    // int kk = 5;
+    // int lll = 9;
+    // int* ll = &lll;
+    // int** l = &ll;
+    // IocSend_dd(&kk);
+    // IocReceive_dd(l);
+    // printf("lll = %d\n",lll);
+    // printf("lll = %d\n",**l);
     /*send reference end*/
     return 0;
 
